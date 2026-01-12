@@ -19,6 +19,7 @@
     ./accounts/email/personal
     ./accounts/email/take2
 
+    ./bash
     ./charm
     ./chromium
     ./codex
@@ -38,10 +39,11 @@
     ./openai
     ./python3
     ./shell
+    ./tmux
     ./tree
     ./vscode
     ./wezterm
-    # ./zsh
+    ./zsh
   ];
 
   config = {

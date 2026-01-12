@@ -1,5 +1,4 @@
 {
-  lib,
   pkgs,
   overlays,
   ...
@@ -14,24 +13,25 @@
       ];
       trusted-users = [
         "root"
-        "wes"
+        "WThorsen"
       ];
     };
-    nixPath = lib.mkForce [ ]; # not needed for flake
   };
-  nixpkgs.config.checkByDefault = false;
-  nixpkgs.overlays = overlays;
-  nixpkgs.config = {
-    allowUnfree = true;
-    allowUnfreePredicate = _: true;
+  nixpkgs = {
+    config.checkByDefault = false;
+    overlays = overlays;
+    config = {
+      allowUnfree = true;
+      allowUnfreePredicate = _: true;
+    };
   };
 
-  networking.hostName = "crackbookpro";
+  networking.hostName = "KK9V4TQ0J0";
 
   system = {
     stateVersion = 5;
 
-    primaryUser = "wes";
+    primaryUser = "WThorsen";
 
     defaults = {
       NSGlobalDomain = {
@@ -58,15 +58,9 @@
   };
 
   users.users = {
-    wes = {
-      home = "/Users/wes";
+    WThorsen = {
+      home = "/Users/WThorsen";
       shell = pkgs.zsh;
-    };
-  };
-
-  services = {
-    tailscale = {
-      enable = true;
     };
   };
 
@@ -75,14 +69,7 @@
 
     systemPackages = with pkgs; [
       coreutils
-      curl
-      exiftool
-      fastfetch
-      git
-      jq
       nixos-rebuild # for building NixOS configs
-      unzip
-      wget
     ];
   };
 }

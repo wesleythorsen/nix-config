@@ -95,6 +95,36 @@
             }
           ];
         };
+
+        biguy = nix-darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+
+          pkgs = import nixpkgs-unstable {
+            system = "aarch64-darwin";
+            overlays = overlays;
+            config.allowUnfree = true;
+          };
+
+          specialArgs = { inherit inputs outputs overlays; };
+
+          modules = [
+            ./hosts/biguy/darwin.nix
+
+            mac-app-util.darwinModules.default
+
+            home-manager.darwinModules.home-manager
+            {
+              home-manager.useGlobalPkgs = false;
+              home-manager.useUserPackages = true;
+              home-manager.users.WThorsen = import ./hosts/biguy/home.nix;
+              home-manager.extraSpecialArgs = { inherit overlays inputs; };
+              home-manager.backupFileExtension = "backup";
+              home-manager.sharedModules = [
+                mac-app-util.homeManagerModules.default
+              ];
+            }
+          ];
+        };
       };
     };
 }

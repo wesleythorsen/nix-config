@@ -1,64 +1,79 @@
 {
-  config,
   pkgs,
   ...
 }:
 
-let
-  denoCompletions =
-    pkgs.runCommand "deno-completions"
-      {
-        buildInputs = [ pkgs.deno ];
-      }
-      ''
-        deno completions zsh > $out
-      '';
-  jwtCliCompletions =
-    pkgs.runCommand "jwt-cli-completions"
-      {
-        buildInputs = [ pkgs.jwt-cli ];
-      }
-      ''
-        mkdir -p $out/share/zsh/site-functions
-        jwt completion zsh > $out/share/zsh/site-functions/_jwt
-      '';
-in
+# let
+#   denoCompletions =
+#     pkgs.runCommand "deno-completions"
+#       {
+#         buildInputs = [ pkgs.deno ];
+#       }
+#       ''
+#         deno completions zsh > $out
+#       '';
+#   jwtCliCompletions =
+#     pkgs.runCommand "jwt-cli-completions"
+#       {
+#         buildInputs = [ pkgs.jwt-cli ];
+#       }
+#       ''
+#         mkdir -p $out/share/zsh/site-functions
+#         jwt completion zsh > $out/share/zsh/site-functions/_jwt
+#       '';
+# in
 {
-  programs.zsh = {
-    enable = true;
-
-    oh-my-zsh = {
+  programs = {
+    zsh = {
       enable = true;
-      custom = "${config.home.homeDirectory}/.oh-my-zsh-custom";
-      # theme = "xiong-chiamiov-plus";
-      # theme = "random";
-      theme = "minimal";
-      # theme = "funky";
-      # theme = "agnoster"; # like oh-my-posh
-      # theme = "amuse";
-      # theme = "apple";
-      plugins = [
-        "git-open"
-        "deno"
-      ];
+
+      initExtra = ''
+        setopt prompt_subst
+        . ${./posh-git.zsh}
+        PROMPT='%n@%m %1~$(git_prompt_info) » '
+
+        autoload -U up-line-or-beginning-search
+        autoload -U down-line-or-beginning-search
+        zle -N up-line-or-beginning-search
+        zle -N down-line-or-beginning-search
+        bindkey "^[[A" up-line-or-beginning-search
+        bindkey "^[[B" down-line-or-beginning-search
+
+        show_fastfetch () {
+          # Only for interactive shells
+          case "$-" in
+            *i*) : ;;      # interactive
+            *)   return ;; # non-interactive (e.g., ssh with a command)
+          esac
+
+          # Require a real terminal and skip "dumb"
+          [ -t 1 ] || return
+          [ "''${TERM:-}" = "dumb" ] && return
+
+          if command -v fastfetch >/dev/null 2>&1; then
+            fastfetch
+          fi
+        }
+
+        show_fastfetch
+      '';
+
+      enableCompletion = true;
+
+      autosuggestion = {
+        enable = true;
+        # highlight = "fg=#ff00ff,bg=cyan,bold,underline";
+      };
+
+      syntaxHighlighting = {
+        enable = true;
+      };
     };
 
-    autosuggestion = {
+    fzf = {
       enable = true;
-      # highlight = "fg=#ff00ff,bg=cyan,bold,underline";
+      enableZshIntegration = true;
     };
-
-    syntaxHighlighting = {
-      enable = true;
-    };
-
-    plugins = [
-      {
-        name = "jwt-cli";
-        src = jwtCliCompletions;
-        completions = [ "share/zsh/site-functions" ];
-      }
-    ];
   };
 
   home.file = {
@@ -78,8 +93,8 @@ in
       };
     };
 
-    ".oh-my-zsh-custom/plugins/deno/_deno" = {
-      source = denoCompletions;
-    };
+    # ".oh-my-zsh-custom/plugins/deno/_deno" = {
+    #   source = denoCompletions;
+    # };
   };
 }
