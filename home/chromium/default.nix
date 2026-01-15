@@ -12,6 +12,7 @@
     extensions = [
       { id = "nngceckbapebfimnlniiiahkandclblb"; } # bitwarden
       { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # vimium
+      { id = "cnjifjpddelmedmihgijeibhnjfabmlf"; } # obsidian web clipper
     ];
 
     commandLineArgs = [

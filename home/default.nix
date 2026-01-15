@@ -25,7 +25,7 @@
     ./codex
     # ./dotnet
     ./eza
-    ./fabric-ai
+    # ./fabric-ai
     ./fd
     ./fzf
     ./gh
@@ -35,6 +35,7 @@
     ./nodejs
     ./nushell
     ./nvim
+    ./obsidian
     ./open-faas
     ./openai
     ./python3
