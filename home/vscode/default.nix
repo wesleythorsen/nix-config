@@ -41,6 +41,7 @@ in
         # 42crunch.vscode-openapi # check "vscode-utils.extensionsFromVscodeMarketplace" https://www.reddit.com/r/NixOS/comments/115s2gi/how_do_i_reference_a_package_name_that_begins/
         alefragnani.bookmarks
         amih90.to
+        augment.vscode-augment
         # aws-scripting-guy.cform
         bbenoist.nix
         # continue.continue
