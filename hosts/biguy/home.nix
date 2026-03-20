@@ -23,9 +23,13 @@
           user = "git";
           identityFile = "~/.ssh/id_ed25519";
           identitiesOnly = true;
+          addKeysToAgent = "yes";
+          # useKeychain = true;
         };
       };
     };
+
+    # ts-cli.enable = false;
   };
 
   imports = [

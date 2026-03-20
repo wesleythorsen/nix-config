@@ -32,14 +32,17 @@
     ./git
     ./golang
     ./helix
+    ./nh
     ./nodejs
     ./nushell
     ./nvim
     ./obsidian
     ./open-faas
     ./openai
-    ./python3
+    ./python
+    # ./python3
     ./shell
+    # ./tetrascience
     ./tmux
     ./tree
     ./vscode
@@ -64,7 +67,7 @@
     };
 
     home = {
-      stateVersion = "25.05";
+      stateVersion = "25.11";
 
       packages = with pkgs; [
         android-tools

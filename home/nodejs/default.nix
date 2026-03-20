@@ -9,6 +9,7 @@
       # nodejs_20
       # nodejs_22
       nodejs_24
+      yarn
     ];
 
     shellAliases = {
