@@ -13,6 +13,7 @@
       { id = "nngceckbapebfimnlniiiahkandclblb"; } # bitwarden
       { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # vimium
       { id = "cnjifjpddelmedmihgijeibhnjfabmlf"; } # obsidian web clipper
+      { id = "fcoeoabgfenejglbffodgkkbkcdhcgfn"; } # claude
     ];
 
     commandLineArgs = [

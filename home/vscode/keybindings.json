@@ -80,5 +80,25 @@
     "key": "tab",
     "command": "-vscode-augment.next-edit.background.accept",
     "when": "vscode-augment.enableNextEdit && vscode-augment.nextEdit.canAccept && activePanel == 'workbench.view.extension.augment-panel' || vscode-augment.enableNextEdit && vscode-augment.nextEdit.canAccept && activeViewlet == 'workbench.view.extension.augment-panel' || editorHoverFocused && vscode-augment.enableNextEdit && vscode-augment.nextEdit.canAccept && !suggestWidgetVisible || editorTextFocus && vscode-augment.enableNextEdit && vscode-augment.nextEdit.canAccept && !suggestWidgetVisible"
+  },
+  {
+    "key": "shift+cmd+]",
+    "command": "workbench.action.nextSideBarView",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "shift+cmd+[",
+    "command": "workbench.action.previousSideBarView",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+backspace",
+    "command": "-vscode-augment.next-edit.background.reject",
+    "when": "vscode-augment.enableNextEdit && vscode-augment.nextEdit.canReject && activePanel == 'workbench.view.extension.augment-panel' || vscode-augment.enableNextEdit && vscode-augment.nextEdit.canReject && activeViewlet == 'workbench.view.extension.augment-panel' || editorHoverFocused && vscode-augment.enableNextEdit && vscode-augment.nextEdit.canReject && !suggestWidgetVisible || editorTextFocus && vscode-augment.enableNextEdit && vscode-augment.nextEdit.canReject && !suggestWidgetVisible"
+  },
+  {
+    "key": "alt+cmd+k",
+    "command": "-claude-code.insertAtMentioned",
+    "when": "editorTextFocus"
   }
 ]

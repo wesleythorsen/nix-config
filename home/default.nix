@@ -97,6 +97,8 @@
         nixd
         nixfmt-rfc-style
         nmap
+        # obs-studio # linux only
+        parallel-full
         pipes-rs
         pnpm
         postman

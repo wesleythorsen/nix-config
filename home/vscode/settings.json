@@ -318,8 +318,11 @@
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
   "redhat.telemetry.enabled": false,
-  "diffEditor.ignoreTrimWhitespace": true,
+  "diffEditor.ignoreTrimWhitespace": false,
   "git.blame.editorDecoration.enabled": true,
   "git.blame.statusBarItem.enabled": false,
-  "terminal.integrated.macOptionIsMeta": true
+  "terminal.integrated.macOptionIsMeta": true,
+  "terminal.integrated.commandsToSkipShell": [
+    "-workbench.action.terminal.kill"
+  ]
 }
