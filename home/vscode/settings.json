@@ -137,6 +137,7 @@
     "pipenv",
     "pkgs",
     "platformdirs",
+    "PLCR",
     "pname",
     "premajor",
     "preminor",

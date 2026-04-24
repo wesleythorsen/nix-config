@@ -35,7 +35,7 @@
     ./nh
     ./nodejs
     ./nushell
-    ./nvim
+    # ./nvim
     ./obsidian
     ./open-faas
     ./openai

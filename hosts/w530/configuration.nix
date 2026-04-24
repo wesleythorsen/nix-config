@@ -233,9 +233,9 @@ in
         nftables
         nixd
         nmap
-        nodejs_24
-        nodePackages.typescript
-        nodePackages.typescript-language-server
+        # nodejs_24
+        # nodePackages.typescript
+        # nodePackages.typescript-language-server
         pciutils
         ripgrep
         rsync
