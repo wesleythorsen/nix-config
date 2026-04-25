@@ -142,7 +142,7 @@ in
       nodePackages.prettier
       nodePackages.eslint
       stylua # Lua formatter
-      nixfmt-rfc-style # Nix formatter
+      nixfmt # Nix formatter
     ];
 
   };

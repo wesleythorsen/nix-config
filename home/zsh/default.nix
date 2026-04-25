@@ -27,7 +27,7 @@
     zsh = {
       enable = true;
 
-      initExtra = ''
+      initContent = ''
         setopt prompt_subst
         . ${./posh-git.zsh}
         PROMPT='%n@%m %1~$(git_prompt_info) » '

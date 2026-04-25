@@ -88,14 +88,14 @@
         jq
         jwt-cli
         kubernetes-helm
-        litecli
+        # litecli # currently broken on nixpkgs-unstable via cli-helpers
         miller
-        mysql80
+        # mysql80
         nerd-fonts.jetbrains-mono
         ngrok
         nix-tree
         nixd
-        nixfmt-rfc-style
+        nixfmt
         nmap
         # obs-studio # linux only
         parallel-full
