@@ -40,7 +40,7 @@
     ./obsidian
     ./open-faas
     ./openai
-    ./python
+    # ./python
     # ./python3
     ./shell
     # ./tetrascience
