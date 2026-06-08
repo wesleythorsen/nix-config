@@ -21,6 +21,27 @@
         "type": "github"
       }
     },
+    "envd": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1779474960,
+        "narHash": "sha256-qUPSAdF+kYo0xqXJyHcJ2dJtMDqlfpXij/XO1DtKIQo=",
+        "owner": "wesleythorsen",
+        "repo": "envd",
+        "rev": "de20019054d0d24fc275925fcdfe474302a01317",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wesleythorsen",
+        "ref": "main",
+        "repo": "envd",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -256,6 +277,7 @@
     },
     "root": {
       "inputs": {
+        "envd": "envd",
         "home-manager": "home-manager",
         "mac-app-util": "mac-app-util",
         "nix-darwin": "nix-darwin",

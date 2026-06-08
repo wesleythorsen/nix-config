@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  overlays ? [ ],
   ...
 }:
 
@@ -51,8 +52,11 @@
   ];
 
   config = {
-    nixpkgs.config.allowUnfree = true;
-    nixpkgs.config.allowUnfreePredicate = _: true;
+    nixpkgs = {
+      inherit overlays;
+      config.allowUnfree = true;
+      config.allowUnfreePredicate = _: true;
+    };
 
     systemd.user.startServices = "sd-switch";
 
@@ -70,6 +74,7 @@
       stateVersion = "25.11";
 
       packages = with pkgs; [
+        envd
         android-tools
         auth0-cli
         awscli2

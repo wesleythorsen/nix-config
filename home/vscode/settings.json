@@ -308,7 +308,6 @@
   "markdown-preview-enhanced.codeBlockTheme": "default.css",
   "timing.hoverDuration.useISOTargetFormat": true,
   "timing.insertConvertedTime": true,
-  "workbench.editor.enablePreview": true,
   "[dockercompose]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
@@ -325,5 +324,6 @@
   "terminal.integrated.macOptionIsMeta": true,
   "terminal.integrated.commandsToSkipShell": [
     "-workbench.action.terminal.kill"
-  ]
+  ],
+  "claudeCode.preferredLocation": "panel"
 }

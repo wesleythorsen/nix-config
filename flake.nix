@@ -24,6 +24,10 @@
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    envd = {
+      url = "github:wesleythorsen/envd/main";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   outputs =
@@ -34,12 +38,15 @@
       nix-vscode-extensions,
       nix-darwin,
       mac-app-util,
+      envd,
       ...
     }@inputs:
     let
       inherit (self) outputs;
       overlays = [
         nix-vscode-extensions.overlays.default
+
+        envd.overlays.default
 
         (
           final: prev:
