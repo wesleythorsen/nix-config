@@ -67,6 +67,14 @@
             podman = unstable.podman;
             podman-desktop = unstable.podman-desktop;
             # zoom-us = unstable.zoom-us;
+            perlPackages = prev.perlPackages // {
+              DBDCSV = prev.perlPackages.DBDCSV.overrideAttrs (_: {
+                doCheck = false;
+              });
+            };
+            kubernetes-helm = prev.kubernetes-helm.overrideAttrs (_: {
+              doCheck = false;
+            });
           }
         )
       ];
