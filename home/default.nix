@@ -43,6 +43,7 @@
     # ./python
     # ./python3
     ./shell
+    ./slack
     # ./tetrascience
     ./tmux
     ./tree
