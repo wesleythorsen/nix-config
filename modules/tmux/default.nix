@@ -1,20 +1,23 @@
 {
-  pkgs,
-  ...
-}:
+  flake.modules.homeManager.tmux =
+    {
+      pkgs,
+      ...
+    }:
 
-{
-  programs.tmux = {
-    enable = true;
+    {
+      programs.tmux = {
+        enable = true;
 
-    mouse = true;
-    keyMode = "vi";
+        mouse = true;
+        keyMode = "vi";
 
-    plugins = [
-      pkgs.tmuxPlugins.sensible
-      pkgs.tmuxPlugins.tmux-fzf
-    ];
+        plugins = [
+          pkgs.tmuxPlugins.sensible
+          pkgs.tmuxPlugins.tmux-fzf
+        ];
 
-    extraConfig = "";
-  };
+        extraConfig = "";
+      };
+    };
 }

@@ -1,21 +1,24 @@
 {
-  config,
-  lib,
-  ...
-}:
+  flake.modules.homeManager.thunderbird =
+    {
+      config,
+      lib,
+      ...
+    }:
 
-{
-  programs.thunderbird = {
-    enable = true;
+    {
+      programs.thunderbird = {
+        enable = true;
 
-    # add all email profiles to thunderbird
-    profiles = lib.listToAttrs (
-      lib.mapAttrsToList (name: acc: {
-        name = name;
-        value = {
-          isDefault = acc.primary; # set primary account as thunderbird default
-        };
-      }) config.accounts.email.accounts
-    );
-  };
+        # add all email profiles to thunderbird
+        profiles = lib.listToAttrs (
+          lib.mapAttrsToList (name: acc: {
+            name = name;
+            value = {
+              isDefault = acc.primary; # set primary account as thunderbird default
+            };
+          }) config.accounts.email.accounts
+        );
+      };
+    };
 }

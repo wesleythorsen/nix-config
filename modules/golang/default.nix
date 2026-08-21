@@ -1,24 +1,31 @@
 {
-  lib,
-  config,
-  pkgs,
-  ...
-}:
+  flake.modules.homeManager.golang =
+    {
+      lib,
+      config,
+      pkgs,
+      ...
+    }:
+    let
+      cfg = config.golang;
+    in
+    {
+      options.golang = {
+        enable = lib.mkEnableOption "Enable golang";
+      };
 
-let
-  cfg = config.golang;
-in
-{
-  options.golang = {
-    enable = lib.mkEnableOption "Enable golang";
-  };
+      config = lib.mkMerge [
+        # selecting this feature enables it (overridable per host)
+        { golang.enable = lib.mkDefault true; }
 
-  config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [
-      go
-      clang
-      libtool
-      makeWrapper
-    ];
-  };
+        (lib.mkIf cfg.enable {
+          home.packages = with pkgs; [
+            go
+            clang
+            libtool
+            makeWrapper
+          ];
+        })
+      ];
+    };
 }

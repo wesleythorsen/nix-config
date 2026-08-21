@@ -1,24 +1,26 @@
 {
-  pkgs,
-  ...
-}:
+  flake.modules.homeManager.chromium =
+    {
+      pkgs,
+      ...
+    }:
+    {
+      programs.brave = {
+        enable = true;
 
-{
-  programs.brave = {
-    enable = true;
+        package = pkgs.brave;
 
-    package = pkgs.brave;
+        extensions = [
+          { id = "nngceckbapebfimnlniiiahkandclblb"; } # bitwarden
+          { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # vimium
+          { id = "cnjifjpddelmedmihgijeibhnjfabmlf"; } # obsidian web clipper
+          { id = "fcoeoabgfenejglbffodgkkbkcdhcgfn"; } # claude
+        ];
 
-    extensions = [
-      { id = "nngceckbapebfimnlniiiahkandclblb"; } # bitwarden
-      { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # vimium
-      { id = "cnjifjpddelmedmihgijeibhnjfabmlf"; } # obsidian web clipper
-      { id = "fcoeoabgfenejglbffodgkkbkcdhcgfn"; } # claude
-    ];
-
-    commandLineArgs = [
-      "--disable-component-update"
-      "--disable-features=WebRtcAllowInputVolumeAdjustment"
-    ];
-  };
+        commandLineArgs = [
+          "--disable-component-update"
+          "--disable-features=WebRtcAllowInputVolumeAdjustment"
+        ];
+      };
+    };
 }

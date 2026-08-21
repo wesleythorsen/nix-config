@@ -1,14 +1,17 @@
 {
-  pkgs,
-  ...
-}:
+  flake.modules.homeManager.tree =
+    {
+      pkgs,
+      ...
+    }:
 
-{
-  home = {
-    packages = with pkgs; [
-      tree
-    ];
+    {
+      home = {
+        packages = with pkgs; [
+          tree
+        ];
 
-    shellAliases.tree = "tree -a -I '.git'";
-  };
+        shellAliases.tree = "tree -a -I '.git'";
+      };
+    };
 }

@@ -1,16 +1,14 @@
 {
-  ...
-}:
+  flake.modules.homeManager.fd = {
+    programs.fd = {
+      enable = true;
 
-{
-  programs.fd = {
-    enable = true;
+      hidden = true;
 
-    hidden = true;
-
-    ignores = [
-      ".git/"
-      "node_modules/"
-    ];
+      ignores = [
+        ".git/"
+        "node_modules/"
+      ];
+    };
   };
 }

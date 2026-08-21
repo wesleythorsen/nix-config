@@ -1,12 +1,15 @@
 {
-  pkgs,
-  ...
-}:
+  flake.modules.homeManager.dotnet =
+    {
+      pkgs,
+      ...
+    }:
 
-{
-  home = {
-    packages = with pkgs; [
-      dotnet-sdk_9
-    ];
-  };
+    {
+      home = {
+        packages = with pkgs; [
+          dotnet-sdk_9
+        ];
+      };
+    };
 }

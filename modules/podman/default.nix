@@ -1,18 +1,22 @@
-# {
-#   config,
-#   pkgs,
-#   ...
-# }: 
+{
+  flake.modules.homeManager.podman = {
+    # {
+    #   config,
+    #   pkgs,
+    #   ...
+    # }:
 
-# {
-#   home = {
-#     packages = with pkgs; [
-#       podman
-#       podman-desktop
-#     ];
+    # {
+    #   home = {
+    #     packages = with pkgs; [
+    #       podman
+    #       podman-desktop
+    #     ];
 
-#     shellAliases = {
-#       docker = "podman";
-#     };
-#   };
-# }
+    #     shellAliases = {
+    #       docker = "podman";
+    #     };
+    #   };
+    # }
+  };
+}

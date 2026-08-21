@@ -1,12 +1,14 @@
 {
-  pkgs,
-  ...
-}:
-
-{
-  home = {
-    packages = with pkgs; [
-      slack
-    ];
-  };
+  flake.modules.homeManager.slack =
+    {
+      pkgs,
+      ...
+    }:
+    {
+      home = {
+        packages = with pkgs; [
+          slack
+        ];
+      };
+    };
 }
