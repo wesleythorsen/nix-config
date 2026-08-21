@@ -63,7 +63,15 @@
             postman = unstable.postman;
             slack = unstable.slack;
             thunderbird = unstable.thunderbird;
-            vscode = unstable.vscode;
+            # TODO: remove override once nixpkgs-unstable includes the fix for
+            # the darwin ripgrep path in VS Code >= 1.129 (nixpkgs commit 0c209480)
+            vscode = unstable.vscode.overrideAttrs (old: {
+              postPatch = builtins.replaceStrings [
+                "Contents/Resources/app/node_modules/@vscode/ripgrep-universal"
+              ] [
+                "Contents/Resources/app/node_modules.asar.unpacked/@vscode/ripgrep-universal"
+              ] old.postPatch;
+            });
             podman = unstable.podman;
             podman-desktop = unstable.podman-desktop;
             # zoom-us = unstable.zoom-us;
