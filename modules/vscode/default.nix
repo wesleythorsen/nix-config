@@ -4,28 +4,15 @@
       config,
       pkgs,
       lib,
-      inputs,
-      overlays,
       ...
     }:
-
-    let
-      overlayedPkgs = import inputs.nixpkgs-unstable {
-        system = pkgs.system;
-        overlays = overlays;
-        config = {
-          allowUnfree = true;
-          allowUnfreePredicate = _: true;
-        };
-      };
-    in
     {
       # symlink vscode settings files so changes get saved in nix-config
       home.activation.linkVSCodeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         #!/usr/bin/env bash
         set -euo pipefail
         CODE_DIR="${config.home.homeDirectory}/Library/Application Support/Code/User"
-        NIX_CONFIG_DIR="${config.homeConfig.nixConfigPath}/home/vscode"
+        NIX_CONFIG_DIR="${config.homeConfig.nixConfigPath}/modules/vscode"
         mkdir -p "$CODE_DIR"
         ln -sf "$NIX_CONFIG_DIR/settings.json" "$CODE_DIR/settings.json"
         ln -sf "$NIX_CONFIG_DIR/keybindings.json" "$CODE_DIR/keybindings.json"
@@ -38,8 +25,9 @@
           enableExtensionUpdateCheck = true;
           enableUpdateCheck = true;
 
-          # extensions = with pkgs.nix-vscode-extensions.vscode-marketplace; [
-          extensions = with overlayedPkgs.vscode-marketplace; [
+          # nix-vscode-extensions overlay is applied to the global pkgs by the
+          # configurations builder, so the marketplace set is available directly
+          extensions = with pkgs.vscode-marketplace; [
             # 42crunch.vscode-openapi # check "vscode-utils.extensionsFromVscodeMarketplace" https://www.reddit.com/r/NixOS/comments/115s2gi/how_do_i_reference_a_package_name_that_begins/
             alefragnani.bookmarks
             amih90.to
