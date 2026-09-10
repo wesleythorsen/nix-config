@@ -45,6 +45,17 @@
           };
         };
 
+        tokenEnvVars = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          description = ''
+            Environment variable names to populate with `gh auth token` at shell
+            startup. The token stays in gh's keychain — nothing is written to the
+            nix store or the repo.
+          '';
+          example = [ "GITHUB_PERSONAL_ACCESS_TOKEN" ];
+        };
+
         ghq = {
           enable = lib.mkEnableOption "Configure ghq (repo management)";
           root = lib.mkOption {
@@ -103,6 +114,10 @@
               prc = "pr create";
             };
 
+            # Claude Code's github MCP server reads this; sourced from gh's
+            # keychain at shell startup, nothing lands in the store or repo
+            tokenEnvVars = lib.mkDefault [ "GITHUB_PERSONAL_ACCESS_TOKEN" ];
+
             ghq = {
               enable = true;
               root = "${config.home.homeDirectory}/repos";
@@ -129,6 +144,10 @@
               cfg.settings
             ];
           };
+
+          home.sessionVariables = lib.genAttrs cfg.tokenEnvVars (
+            _: "$(${lib.getExe config.programs.gh.package} auth token 2>/dev/null)"
+          );
 
           programs.gh-dash = {
             enable = true;
