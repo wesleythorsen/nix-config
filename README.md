@@ -51,6 +51,19 @@ machines, structured with the [dendritic pattern](https://github.com/mightyiam/d
 - Overlays: `modules/flake/overlays.nix`
 - Flake inputs: `flake.nix` (the only non-module file)
 
+## AI / agent assets
+
+- Cross-tool [Agent Skills](https://agentskills.io) live in `modules/agent-skills/<skill>/`
+  (one dir per skill, `SKILL.md` + assets). They're symlinked into both
+  `~/.agents/skills/` (open-standard location, any agent) and `~/.claude/skills/`
+  as **out-of-store** links — agents can edit them live and the change lands in
+  this repo. Adding a skill = adding a directory; no nix edits.
+- Claude Code-only assets (subagents, future settings/hooks) live in
+  `modules/claude-code/`.
+- If skills ever need consumers beyond these machines, promote
+  `modules/agent-skills/` to its own repo and point the feature at it as a
+  flake input — the layout is self-contained on purpose.
+
 ## Apply
 
 ```sh

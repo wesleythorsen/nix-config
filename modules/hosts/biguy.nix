@@ -3,6 +3,8 @@ let
   # the shared feature set both Macs used via the old home/default.nix
   sharedHomeModules = with config.flake.modules.homeManager; [
     base
+    agent-skills
+    claude-code
     email
     bash
     charm
