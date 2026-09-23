@@ -1,0 +1,5 @@
+{
+  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.claude/hooks/vigil", "timeout": 10 }] }],
+  "Stop":             [{ "hooks": [{ "type": "command", "command": "~/.claude/hooks/vigil", "timeout": 10 }] }],
+  "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "~/.claude/hooks/vigil", "timeout": 10 }] }]
+}

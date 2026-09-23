@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+# vigil - keep this Mac awake (display on, Slack presence active) while a job runs.
+#
+# Usage:
+#   vigil                          hold until Ctrl-C
+#   vigil -p PID                   hold until PID exits
+#   vigil [opts] -- CMD [ARGS...]  run CMD, hold until it exits (its exit code is passed through)
+#
+# Options:
+#   -p, --pid PID        process to watch; vigil exits when it does
+#   -n, --name NAME      label shown in the process title, e.g. "vigil[NAME]" (default: target's name)
+#   -i, --interval SEC   seconds between presence checks (default 60)
+#   -I, --idle SEC       only nudge presence after SEC seconds with no keyboard/mouse input (default 120)
+#   -d, --dwell SEC      seconds the presence app stays frontmost during a nudge (default 5)
+#   -a, --app NAME       presence app to nudge; repeatable (default: Slack)
+#   -q, --quiet          no log output
+#       --no-presence    only prevent sleep; never switch apps
+#       --no-notify      skip the macOS notification when the target exits
+#   -h, --help           show this help
+#
+# Behaviour:
+#   * caffeinate keeps the display and system awake for as long as vigil runs.
+#   * Every INTERVAL seconds vigil checks how long since you last touched the
+#     keyboard or mouse. If you are active it does nothing at all. Only when the
+#     Mac has been untouched for IDLE seconds does it briefly bring the presence
+#     app (Slack) to the front and then restore whatever was frontmost before, so
+#     the job you are watching stays on screen and no keystrokes land in Slack.
+#   * The process title is "vigil[LABEL]" (and "vigil-hold[LABEL]" for caffeinate)
+#     so process lists show what is being waited on rather than a static name.
+
+set -u
+
+INTERVAL=60
+IDLE_THRESHOLD=120
+DWELL=5
+APPS=()
+QUIET=
+PRESENCE=1
+NOTIFY=1
+TARGET_PID=
+LABEL=
+CMD=()
+
+usage() { sed -n '2,/^$/p' "$0" | sed -E 's/^# ?//'; }
+die() { printf 'vigil: %s\n' "$*" >&2; exit 2; }
+
+while (($#)); do
+  case "$1" in
+    -p|--pid)       [[ ${2:-} =~ ^[0-9]+$ ]] || die "--pid needs a number"; TARGET_PID=$2; shift 2 ;;
+    -n|--name)      LABEL=${2:-}; shift 2 ;;
+    -i|--interval)  INTERVAL=${2:-}; shift 2 ;;
+    -I|--idle)      IDLE_THRESHOLD=${2:-}; shift 2 ;;
+    -d|--dwell)     DWELL=${2:-}; shift 2 ;;
+    -a|--app)       APPS+=("${2:-}"); shift 2 ;;
+    -q|--quiet)     QUIET=1; shift ;;
+    --no-presence)  PRESENCE=; shift ;;
+    --no-notify)    NOTIFY=; shift ;;
+    -h|--help)      usage; exit 0 ;;
+    --)             shift; CMD=("$@"); break ;;
+    -*)             die "unknown option: $1 (see --help)" ;;
+    *)              CMD=("$@"); break ;;
+  esac
+done
+((${#APPS[@]})) || APPS=(Slack)
+[[ -n $TARGET_PID && ${#CMD[@]} -gt 0 ]] && die "use either --pid or a command, not both"
+
+# Default label: what we are waiting on.
+if [[ -z $LABEL ]]; then
+  if [[ -n $TARGET_PID ]]; then
+    LABEL=$(basename "$(ps -o comm= -p "$TARGET_PID" 2>/dev/null)")
+    [[ -n $LABEL ]] || die "no process with pid $TARGET_PID"
+  elif ((${#CMD[@]})); then
+    LABEL=$(basename "${CMD[0]}")
+  else
+    LABEL=shell
+  fi
+fi
+
+# Re-exec once so ps/Activity Monitor show "vigil[LABEL]" instead of "bash".
+if [[ -z ${VIGIL_TITLED:-} ]]; then
+  export VIGIL_TITLED=1
+  args=(--name "$LABEL" --interval "$INTERVAL" --idle "$IDLE_THRESHOLD" --dwell "$DWELL")
+  for app in "${APPS[@]}"; do args+=(--app "$app"); done
+  [[ -n $TARGET_PID ]] && args+=(--pid "$TARGET_PID")
+  [[ -n $QUIET ]] && args+=(--quiet)
+  [[ -n $PRESENCE ]] || args+=(--no-presence)
+  [[ -n $NOTIFY ]] || args+=(--no-notify)
+  ((${#CMD[@]})) && args+=(-- "${CMD[@]}")
+  exec -a "vigil[$LABEL]" "$BASH" "$0" "${args[@]}"
+fi
+
+log() { [[ -n $QUIET ]] || printf '%s vigil[%s] %s\n' "$(date +%H:%M:%S)" "$LABEL" "$*"; }
+
+# Seconds since the last keyboard/mouse event (what Slack and the screensaver look at).
+idle_seconds() {
+  ioreg -c IOHIDSystem 2>/dev/null | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'
+}
+
+front_app() {
+  local asn
+  asn=$(lsappinfo front 2>/dev/null) || return
+  [[ -n $asn ]] && lsappinfo info -only name "$asn" 2>/dev/null | sed -E 's/.*="(.*)"$/\1/'
+}
+
+app_running() { [[ -n $(lsappinfo find "LSDisplayName=$1" 2>/dev/null) ]]; }
+
+activate() { osascript -e "tell application \"$1\" to activate" >/dev/null 2>&1; }
+
+notify() {
+  [[ -n $NOTIFY ]] || return 0
+  osascript -e "display notification \"$2\" with title \"$1\" sound name \"Glass\"" >/dev/null 2>&1
+}
+
+target_alive() { [[ -z $TARGET_PID ]] || kill -0 "$TARGET_PID" 2>/dev/null; }
+
+# Sleep up to $1 seconds, returning early (status 1) if the target exits.
+wait_or_exit() {
+  local n=$1
+  while ((n > 0)); do
+    target_alive || return 1
+    sleep 1; ((n--))
+  done
+  target_alive
+}
+
+# Bring each presence app forward briefly, then put back whatever was in front.
+nudge() {
+  local prev app i
+  prev=$(front_app)
+  for app in "${APPS[@]}"; do
+    if ! app_running "$app"; then log "$app is not running; skipping"; continue; fi
+    if [[ $prev == "$app" ]]; then log "$app already frontmost"; continue; fi
+    log "idle ${idle}s: showing $app for ${DWELL}s"
+    activate "$app"
+    for ((i = 0; i < DWELL; i++)); do
+      sleep 1
+      if (($(idle_seconds) < 2)); then log "input detected; restoring ${prev:-previous app} early"; break; fi
+      target_alive || break
+    done
+    # Only restore if nobody (you) has switched apps in the meantime.
+    [[ -n $prev && $(front_app) == "$app" ]] && activate "$prev"
+  done
+}
+
+CAFF_PID=
+cleanup() {
+  [[ -n $CAFF_PID ]] && kill "$CAFF_PID" 2>/dev/null
+  log "released"
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+
+if ((${#CMD[@]})); then
+  "${CMD[@]}" &
+  TARGET_PID=$!
+fi
+
+# -d display, -i idle system sleep, -m disk, -s AC system sleep; -w exits with the target.
+(exec -a "vigil-hold[$LABEL]" /usr/bin/caffeinate -dims ${TARGET_PID:+-w "$TARGET_PID"}) &
+CAFF_PID=$!
+
+log "holding awake${TARGET_PID:+ for pid $TARGET_PID}; presence nudge after ${IDLE_THRESHOLD}s idle, every ${INTERVAL}s"
+
+while target_alive; do
+  idle=$(idle_seconds)
+  if [[ -z $PRESENCE ]]; then
+    :
+  elif ((idle >= IDLE_THRESHOLD)); then
+    nudge
+  else
+    log "you are active (idle ${idle}s); standing by"
+  fi
+  wait_or_exit "$INTERVAL" || break
+done
+
+rc=0
+if ((${#CMD[@]})); then
+  wait "$TARGET_PID"; rc=$?
+  log "${CMD[0]} exited with status $rc"
+  notify "vigil: ${CMD[0]} finished" "exit status $rc"
+elif [[ -n $TARGET_PID ]]; then
+  log "pid $TARGET_PID ($LABEL) has exited"
+  notify "vigil: $LABEL finished" "pid $TARGET_PID exited"
+fi
+exit "$rc"

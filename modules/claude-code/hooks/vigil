@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Claude Code hook: hold the Mac awake with `vigil` while Claude is working.
+#
+# Registered in ~/.claude/settings.json (see hooks.json next to this file) for:
+#   UserPromptSubmit  -> start `vigil --pid <claude pid>` for this session (if not already running)
+#   Stop, SessionEnd  -> release it
+#
+# Why: Claude Code itself only runs `caffeinate -i` around Bash calls, which
+# stops system sleep but lets the display sleep and Slack go idle. vigil keeps
+# the screen on and presence active for the whole turn, then lets go as soon
+# as Claude is waiting on you again, so the machine can sleep normally.
+
+set -u
+input=$(cat)
+event=$(jq -r '.hook_event_name // empty' <<<"$input")
+session=$(jq -r '.session_id // "unknown"' <<<"$input")
+pidfile="${TMPDIR:-/tmp}/vigil-claude-${session}.pid"
+
+# Walk up from this hook shell to the `claude` process that spawned it.
+claude_pid() {
+  local p=$PPID
+  while ((p > 1)); do
+    [[ $(basename "$(ps -o comm= -p "$p" 2>/dev/null)") == claude ]] && { echo "$p"; return 0; }
+    p=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
+    [[ -n $p ]] || break
+  done
+  return 1
+}
+
+running() { [[ -f $pidfile ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; }
+
+case "$event" in
+  UserPromptSubmit)
+    running && exit 0
+    cpid=$(claude_pid) || exit 0
+    nohup "${VIGIL:-$HOME/bin/vigil}" --pid "$cpid" --name claude --quiet --no-notify >/dev/null 2>&1 &
+    echo $! >"$pidfile"
+    ;;
+  Stop | SessionEnd)
+    running && kill "$(cat "$pidfile")" 2>/dev/null
+    rm -f "$pidfile"
+    ;;
+esac
+exit 0
