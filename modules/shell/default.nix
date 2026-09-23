@@ -89,7 +89,7 @@
                 source = "${./bin}/${name}";
                 executable = true;
               };
-            }) (builtins.attrNames (builtins.readDir ./bin))
+            }) (builtins.filter (n: !lib.hasSuffix ".md" n) (builtins.attrNames (builtins.readDir ./bin)))
           );
         };
       };
