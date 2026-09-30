@@ -1,7 +1,7 @@
 # vigil
 
 Keep the Mac awake (display on, Slack presence active) while a job runs, without
-ever stealing focus while you are typing.
+ever stealing focus or touching your windows.
 
 ## Quickstart
 
@@ -32,9 +32,11 @@ vigil -p "$(pgrep -f 'cargo build')" -n cargo
 ```sh
 vigil -I 300                 # only nudge after 5 minutes without input (default 120s)
 vigil -i 120                 # check every 2 minutes (default 60s)
-vigil -d 2                   # show Slack for 2 seconds (default 5s)
-vigil -a Slack -a Teams      # nudge more than one app
-vigil --no-presence          # just prevent sleep; never switch apps
+vigil -d 2                   # focus mode: show Slack for 2 seconds (default 5s)
+vigil -m jiggle              # default: invisible 1px mouse move when idle; no app switching
+vigil -m focus               # old behaviour: briefly bring Slack frontmost, then restore
+vigil -a Slack -a Teams      # focus mode with more than one app (implies -m focus)
+vigil -m none                # just prevent sleep (alias: --no-presence)
 ```
 
 ### [Quiet and notifications](#output)
@@ -90,19 +92,23 @@ name; `-n` overrides it. `--pid` and a command are mutually exclusive.
 ### Presence nudge
 
 Every `-i` seconds vigil reads the macOS HID idle timer (time since the last
-keyboard or mouse event, the same signal Slack and the screensaver use).
+keyboard or mouse event, the same signal Slack, Teams and the screensaver use).
+Its own synthetic events are excluded, so "idle" always means *you* have been
+idle. If you have been active within `-I` seconds it does nothing at all.
+Otherwise it signals presence according to `-m`:
 
-- If you have been active within `-I` seconds, it does nothing at all. Your
-  windows are never touched.
-- Otherwise it records the frontmost app, activates each `-a` app for `-d`
-  seconds, then re-activates the app that was in front before.
-- During the dwell it polls once per second. Any input restores the previous
-  app immediately.
-- If the frontmost app changed during the dwell (you clicked somewhere), it
-  leaves your choice alone.
-- Apps that are not running are skipped, never launched.
-
-`--no-presence` disables all of this and leaves only the sleep hold.
+- **`jiggle`** (default): posts a real 1px mouse-move and back through the HID
+  event tap. Every idle timer on the system resets exactly as if you had
+  touched the trackpad. Nothing on screen changes. This is what actually keeps
+  Slack green: merely activating the Slack window does not reset the idle
+  timer, which is why a short focus dwell was unreliable.
+- **`focus`**: the original approach. Records the frontmost app, activates each
+  `-a` app for `-d` seconds, then re-activates the previous app. Polls once per
+  second during the dwell and restores immediately on any input; leaves your
+  choice alone if you switched apps yourself; skips apps that are not running.
+  Slack only counts this as activity while it is frontmost, so use a long `-d`
+  if you rely on this mode. Kept for machines where synthetic input is blocked.
+- **`none`** (or `--no-presence`): sleep hold only.
 
 ### Output
 
@@ -111,7 +117,7 @@ Log lines go to stdout with a timestamp and the label:
 ```
 18:17:56 vigil[sleep] holding awake for pid 67403; presence nudge after 120s idle, every 60s
 18:17:56 vigil[sleep] you are active (idle 3s); standing by
-18:19:56 vigil[sleep] idle 123s: showing Slack for 5s
+18:19:56 vigil[sleep] idle 123s: jiggling mouse
 18:20:01 vigil[sleep] sleep exited with status 0
 18:20:01 vigil[sleep] released
 ```
@@ -157,9 +163,10 @@ binary (used for testing from the repo checkout).
 | `-n, --name NAME` | target name / `shell` | label in the process title and log |
 | `-i, --interval SEC` | 60 | seconds between presence checks |
 | `-I, --idle SEC` | 120 | required idle time before a nudge |
-| `-d, --dwell SEC` | 5 | seconds the presence app stays frontmost |
-| `-a, --app NAME` | Slack | presence app; repeatable |
+| `-d, --dwell SEC` | 5 | focus mode: seconds the presence app stays frontmost |
+| `-m, --mode MODE` | jiggle | `jiggle`, `focus` or `none` |
+| `-a, --app NAME` | Slack | presence app for focus mode; repeatable; implies `-m focus` |
 | `-q, --quiet` | off | no log output |
-| `--no-presence` | off | sleep hold only, never switch apps |
+| `--no-presence` | off | same as `--mode none` |
 | `--no-notify` | off | skip the exit notification |
 | `-h, --help` | | print the header comment |

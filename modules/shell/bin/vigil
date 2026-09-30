@@ -12,19 +12,27 @@
 #   -i, --interval SEC   seconds between presence checks (default 60)
 #   -I, --idle SEC       only nudge presence after SEC seconds with no keyboard/mouse input (default 120)
 #   -d, --dwell SEC      seconds the presence app stays frontmost during a nudge (default 5)
-#   -a, --app NAME       presence app to nudge; repeatable (default: Slack)
+#   -m, --mode MODE      how to signal presence when idle (default jiggle):
+#                          jiggle  move the mouse 1px and back (invisible; resets the OS idle
+#                                  timer that Slack, Teams and the screensaver all watch)
+#                          focus   briefly bring the presence app(s) frontmost, then restore
+#                          none    only prevent sleep
+#   -a, --app NAME       presence app for focus mode; repeatable (default: Slack); implies -m focus
 #   -q, --quiet          no log output
-#       --no-presence    only prevent sleep; never switch apps
+#       --no-presence    same as --mode none
 #       --no-notify      skip the macOS notification when the target exits
 #   -h, --help           show this help
 #
 # Behaviour:
 #   * caffeinate keeps the display and system awake for as long as vigil runs.
 #   * Every INTERVAL seconds vigil checks how long since you last touched the
-#     keyboard or mouse. If you are active it does nothing at all. Only when the
-#     Mac has been untouched for IDLE seconds does it briefly bring the presence
-#     app (Slack) to the front and then restore whatever was frontmost before, so
-#     the job you are watching stays on screen and no keystrokes land in Slack.
+#     keyboard or mouse (its own synthetic events are not counted). If you are
+#     active it does nothing at all. Only when the Mac has been untouched for
+#     IDLE seconds does it signal presence: by default a 1px mouse jiggle, which
+#     Slack treats exactly like real input, so no window ever changes and no
+#     keystrokes can land in the wrong app. Focus mode is the old behaviour
+#     (activate Slack, then restore the previous app) for when synthetic input
+#     is not permitted.
 #   * The process title is "vigil[LABEL]" (and "vigil-hold[LABEL]" for caffeinate)
 #     so process lists show what is being waited on rather than a static name.
 
@@ -34,8 +42,8 @@ INTERVAL=60
 IDLE_THRESHOLD=120
 DWELL=5
 APPS=()
+MODE=
 QUIET=
-PRESENCE=1
 NOTIFY=1
 TARGET_PID=
 LABEL=
@@ -51,9 +59,10 @@ while (($#)); do
     -i|--interval)  INTERVAL=${2:-}; shift 2 ;;
     -I|--idle)      IDLE_THRESHOLD=${2:-}; shift 2 ;;
     -d|--dwell)     DWELL=${2:-}; shift 2 ;;
-    -a|--app)       APPS+=("${2:-}"); shift 2 ;;
+    -m|--mode)      MODE=${2:-}; shift 2 ;;
+    -a|--app)       APPS+=("${2:-}"); MODE=${MODE:-focus}; shift 2 ;;
     -q|--quiet)     QUIET=1; shift ;;
-    --no-presence)  PRESENCE=; shift ;;
+    --no-presence)  MODE=none; shift ;;
     --no-notify)    NOTIFY=; shift ;;
     -h|--help)      usage; exit 0 ;;
     --)             shift; CMD=("$@"); break ;;
@@ -62,6 +71,8 @@ while (($#)); do
   esac
 done
 ((${#APPS[@]})) || APPS=(Slack)
+MODE=${MODE:-jiggle}
+case "$MODE" in jiggle|focus|none) ;; *) die "--mode must be jiggle, focus or none" ;; esac
 [[ -n $TARGET_PID && ${#CMD[@]} -gt 0 ]] && die "use either --pid or a command, not both"
 
 # Default label: what we are waiting on.
@@ -79,11 +90,10 @@ fi
 # Re-exec once so ps/Activity Monitor show "vigil[LABEL]" instead of "bash".
 if [[ -z ${VIGIL_TITLED:-} ]]; then
   export VIGIL_TITLED=1
-  args=(--name "$LABEL" --interval "$INTERVAL" --idle "$IDLE_THRESHOLD" --dwell "$DWELL")
+  args=(--name "$LABEL" --interval "$INTERVAL" --idle "$IDLE_THRESHOLD" --dwell "$DWELL" --mode "$MODE")
   for app in "${APPS[@]}"; do args+=(--app "$app"); done
   [[ -n $TARGET_PID ]] && args+=(--pid "$TARGET_PID")
   [[ -n $QUIET ]] && args+=(--quiet)
-  [[ -n $PRESENCE ]] || args+=(--no-presence)
   [[ -n $NOTIFY ]] || args+=(--no-notify)
   ((${#CMD[@]})) && args+=(-- "${CMD[@]}")
   exec -a "vigil[$LABEL]" "$BASH" "$0" "${args[@]}"
@@ -100,6 +110,29 @@ front_app() {
   local asn
   asn=$(lsappinfo front 2>/dev/null) || return
   [[ -n $asn ]] && lsappinfo info -only name "$asn" 2>/dev/null | sed -E 's/.*="(.*)"$/\1/'
+}
+
+# Move the mouse 1px and back. Posts real HID events, so every idle timer resets.
+jiggle() {
+  osascript -l JavaScript >/dev/null 2>&1 <<'JXA'
+ObjC.import('CoreGraphics');
+var loc = $.CGEventGetLocation($.CGEventCreate(null));
+[1, 0].forEach(function (dx) {
+  $.CGEventPost($.kCGHIDEventTap,
+    $.CGEventCreateMouseEvent(null, $.kCGEventMouseMoved, $.CGPointMake(loc.x + dx, loc.y), 0));
+});
+JXA
+}
+
+# Seconds since the last *human* input: ignores the idle reset caused by our own jiggle.
+LAST_NUDGE=0
+USER_LAST_ACTIVE=$(( $(date +%s) - $(idle_seconds) ))
+user_idle_seconds() {
+  local now idle
+  now=$(date +%s); idle=$(idle_seconds)
+  # If the most recent event is newer than our last nudge, it was a human.
+  if (( now - idle > LAST_NUDGE + 1 )); then USER_LAST_ACTIVE=$(( now - idle )); fi
+  echo $(( now - USER_LAST_ACTIVE ))
 }
 
 app_running() { [[ -n $(lsappinfo find "LSDisplayName=$1" 2>/dev/null) ]]; }
@@ -123,8 +156,16 @@ wait_or_exit() {
   target_alive
 }
 
-# Bring each presence app forward briefly, then put back whatever was in front.
 nudge() {
+  LAST_NUDGE=$(date +%s)
+  case "$MODE" in
+    jiggle) log "idle ${idle}s: jiggling mouse"; jiggle ;;
+    focus)  focus_nudge ;;
+  esac
+}
+
+# Bring each presence app forward briefly, then put back whatever was in front.
+focus_nudge() {
   local prev app i
   prev=$(front_app)
   for app in "${APPS[@]}"; do
@@ -159,11 +200,11 @@ fi
 (exec -a "vigil-hold[$LABEL]" /usr/bin/caffeinate -dims ${TARGET_PID:+-w "$TARGET_PID"}) &
 CAFF_PID=$!
 
-log "holding awake${TARGET_PID:+ for pid $TARGET_PID}; presence nudge after ${IDLE_THRESHOLD}s idle, every ${INTERVAL}s"
+log "holding awake${TARGET_PID:+ for pid $TARGET_PID}; presence mode $MODE after ${IDLE_THRESHOLD}s idle, checked every ${INTERVAL}s"
 
 while target_alive; do
-  idle=$(idle_seconds)
-  if [[ -z $PRESENCE ]]; then
+  idle=$(user_idle_seconds)
+  if [[ $MODE == none ]]; then
     :
   elif ((idle >= IDLE_THRESHOLD)); then
     nudge
