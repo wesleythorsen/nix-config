@@ -1,6 +1,6 @@
 {
   # Claude Code-specific assets (cross-tool skills live in modules/agent-skills).
-  # Same out-of-store symlink idiom: edits in ~/.claude/agents land in this repo.
+  # Same out-of-store symlink idiom: edits in ~/.claude/{CLAUDE.md,agents,hooks} land in this repo.
   # settings.json stays unmanaged because Claude Code rewrites it itself
   # (permission approvals etc). Hooks are therefore registered by hand:
   #   jq -s '.[0] * {hooks: .[1]}' ~/.claude/settings.json hooks/hooks.json
@@ -13,6 +13,7 @@
     in
     {
       home.file = {
+        ".claude/CLAUDE.md".source = link "CLAUDE.md";
         ".claude/agents/cody-coding-intern.md".source = link "agents/cody-coding-intern.md";
         ".claude/hooks/vigil".source = link "hooks/vigil";
       };
