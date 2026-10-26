@@ -5,7 +5,11 @@
   flake.modules.homeManager.ollama =
     { pkgs, ... }:
     let
+      # qwen3-coder is the only one of these whose Ollama template returns
+      # structured tool calls, so it is the agent default; the DeepSeek models
+      # work for chat only (pi --no-tools).
       defaultModels = [
+        "qwen3-coder:30b"
         "deepseek-r1:14b"
         "deepseek-coder-v2:16b"
         "qwen2.5-coder:14b"

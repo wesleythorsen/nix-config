@@ -20,8 +20,16 @@ here. `auth.json` and sessions stay in `~/.pi/agent`, unmanaged.
 
 ## First run
 
-1. `ollama-pull-defaults` (DeepSeek R1 14b, DeepSeek Coder V2 16b, Qwen2.5 Coder 14b; ~30 GB).
+1. `ollama-pull-defaults` (Qwen3 Coder 30b, DeepSeek R1 14b, DeepSeek Coder V2 16b, Qwen2.5 Coder 14b; ~46 GB).
 2. `pi` — first start installs the pinned extensions, then `/model` and pick an `ollama/...` model.
+   Use `ollama/qwen3-coder:30b` for agent work: it is the only pulled model whose
+   Ollama template returns structured tool calls (verified). Ollama rejects tool
+   requests for the DeepSeek models (`does not support tools`) and Qwen2.5-coder
+   emits the call as plain text, so use those with `pi --no-tools` for chat.
+   Known limit: with all five extensions loaded, qwen3-coder gets ~20 tools and
+   starts writing tool calls as text. `pi --no-extensions` works end-to-end
+   (verified: bash tool ran `echo pong`). For extension-heavy sessions (kanban,
+   pi-agents) use a hosted model via `/login`, or trim `packages` in settings.json.
 3. For hosted providers: `/login` inside pi (credentials go to `~/.pi/agent/auth.json`).
 
 ## Extensions installed
