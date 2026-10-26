@@ -1,0 +1,10 @@
+{
+  "$schema": "https://pi.dev/schemas/settings.schema.json",
+  "packages": [
+    { "source": "npm:pi-kanban@2.0.0" },
+    { "source": "npm:pi-subagents@0.83.0" },
+    { "source": "npm:@juicesharp/rpiv-todo@2.15.0" },
+    { "source": "npm:pi-agents@0.38.0" },
+    { "source": "npm:@ricoyudog/pi-debug-dashboard@0.1.0" }
+  ]
+}

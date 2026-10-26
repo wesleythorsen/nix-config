@@ -1,0 +1,15 @@
+{
+  "$schema": "https://pi.dev/schemas/models.schema.json",
+  "providers": {
+    "ollama": {
+      "baseUrl": "http://127.0.0.1:11434/v1",
+      "api": "openai-completions",
+      "apiKey": "ollama",
+      "models": [
+        { "id": "deepseek-r1:14b" },
+        { "id": "deepseek-coder-v2:16b" },
+        { "id": "qwen2.5-coder:14b" }
+      ]
+    }
+  }
+}

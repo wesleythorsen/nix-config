@@ -15,6 +15,8 @@
   The builder in `modules/flake/configurations.nix` wires home-manager
   (useGlobalPkgs), mac-app-util, overlays, and allowUnfree once for all hosts.
   No `specialArgs` anywhere — close over flake-parts top-level `inputs`/`config`.
+- AI agents: `modules/pi` (pi CLI + extension pins), `modules/pi-gui`,
+  `modules/ollama`, `modules/pi-durable` (dev shell). See `modules/pi/README.md`.
 - Shared baselines: `modules/darwin/base.nix` + `macos-defaults.nix`,
   `modules/nixos/base.nix`, `modules/home/base.nix` (packages, stateVersion).
   Overlays: `modules/flake/overlays.nix`.

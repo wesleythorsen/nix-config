@@ -10,6 +10,9 @@ let
     charm
     chromium
     codex
+    ollama
+    pi
+    pi-gui
     eza
     fd
     fzf
