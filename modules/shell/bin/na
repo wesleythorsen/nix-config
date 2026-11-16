@@ -1,0 +1,41 @@
+#!/bin/sh
+# na - nix-activate shortcut with subcommands (nh has no plugin mechanism).
+#
+#   na               rebuild + switch this host from the flake in the current dir
+#   na clean [ARGS]  free disk space: delete old generations of every profile
+#                    (keeps the newest 3), drop stale GC roots (result links,
+#                    direnv), garbage-collect, then dedupe the store.
+#                    Runs `nh clean all --keep 3 --optimise ARGS`, so nh flags
+#                    pass through: `na clean --ask`, `na clean --dry`.
+#                    `na gc` is an alias.
+#   na help          show this help
+#
+# macOS: GC aborts with "Operation not permitted" on old .app bundles unless
+# the terminal has App Management (System Settings > Privacy & Security).
+
+usage() {
+  sed -n '2,/^$/s/^# \{0,1\}//p' "$0"
+}
+
+case "${1:-}" in
+  '')
+    exec nix-activate .
+    ;;
+  clean | gc)
+    shift
+    nh clean all --keep 3 --optimise "$@" && exit 0
+    rc=$?
+    echo "na clean: nh exited $rc. If it said 'Operation not permitted' on a .app," >&2
+    echo "grant your terminal App Management (System Settings > Privacy & Security)," >&2
+    echo "restart the terminal, and run 'na clean' again." >&2
+    exit "$rc"
+    ;;
+  help | -h | --help)
+    usage
+    ;;
+  *)
+    echo "na: unknown command '$1'" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

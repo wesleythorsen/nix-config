@@ -46,7 +46,7 @@
             # l = "eza -la";
             # lt = "eza -laT -I=.git";
             v = "hx";
-            na = "nix-activate ."; # see "bin/nix-activate" script below
+            # `na` is a script in ./bin (`na`, `na clean`); an alias would shadow it
           };
 
           file = {
