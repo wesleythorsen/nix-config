@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(eza -T modules -L 2 --git-ignore)",
+      "Read(//Users/WThorsen/**)",
+      "Bash(nix eval *)"
+    ]
+  }
+}

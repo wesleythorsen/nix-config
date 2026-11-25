@@ -11,6 +11,7 @@ let
     chromium
     codex
     ollama
+    dsh
     pi
     pi-gui
     eza

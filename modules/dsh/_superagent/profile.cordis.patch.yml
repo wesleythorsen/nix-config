@@ -1,0 +1,31 @@
+# $DSH_HOME/profiles/superagent/cordis.patch.yml, written once by
+# dsh-superagent-bootstrap (from modules/dsh/_superagent/ in nix-config).
+# The panel edits machine limits in place afterwards; stateDir is fixed.
+- id: webserver
+  config:
+    host: 127.0.0.1
+    port: 3082
+- id: dsh-superagent
+  config:
+    stateDir: @stateDir@
+# Local Ollama route, same as ~/.config/dsh/ollama.patch.yml. Pick the
+# executor/eval model in the panel (Settings -> Execution / Eval) or use
+# the profile default model; a hosted DeepSeek key works too (Settings -> Models).
+- id: llm-pi-ai
+  config:
+    providers:
+      ollama:
+        displayName: Ollama (local)
+        apiKeyEnv: OLLAMA_API_KEY
+        api: openai-completions
+        baseURL: http://127.0.0.1:11434/v1
+        defaultContextWindow: 65536
+        defaultMaxTokens: 16384
+        compat:
+          supportsDeveloperRole: false
+          maxTokensField: max_tokens
+        models:
+          - id: qwen3-coder:30b
+# Feishu is optional: uncomment to enable its Source.
+# - id: dsh-superagent-feishu
+#   disabled: false

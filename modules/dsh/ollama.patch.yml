@@ -1,0 +1,22 @@
+# Extra Cordis patch overlay for `dsh web --patch ~/.config/dsh/ollama.patch.yml`.
+# Adds the local Ollama server (modules/ollama) as an OpenAI-compatible route.
+# qwen3-coder:30b is the only pulled model whose Ollama template returns
+# structured tool calls; the DeepSeek ones are chat-only (see modules/pi/README.md).
+- id: llm-pi-ai
+  config:
+    providers:
+      ollama:
+        displayName: Ollama (local)
+        apiKeyEnv: OLLAMA_API_KEY
+        api: openai-completions
+        baseURL: http://127.0.0.1:11434/v1
+        defaultContextWindow: 65536
+        defaultMaxTokens: 16384
+        compat:
+          supportsDeveloperRole: false
+          maxTokensField: max_tokens
+        models:
+          - id: qwen3-coder:30b
+          - id: deepseek-r1:14b
+          - id: deepseek-coder-v2:16b
+          - id: qwen2.5-coder:14b
